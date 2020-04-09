@@ -71,21 +71,9 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Lif
 
             @Override
             public void onOrientationChanged(int orientation) {
-
                 FLog.d(ReactConstants.TAG,"DeviceOrientation changed to " + orientation);
 
-                String deviceOrientationValue = lastDeviceOrientationValue;
-
-                int deviceRotation = ((WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
-                orientation = (360 - ORIENTATIONS.get(deviceRotation)) % 360;
-
-               if (orientation == 360 || orientation == 0 || orientation == 180) {
-                    deviceOrientationValue = "PORTRAIT";
-                } else if (orientation == 90) {
-                    deviceOrientationValue = "LANDSCAPE-LEFT";
-                } else if (orientation == 270) {
-                    deviceOrientationValue = "LANDSCAPE-RIGHT";
-                }
+                String deviceOrientationValue = getCurrentOrientation();
 
                 if (!lastDeviceOrientationValue.equals(deviceOrientationValue)) {
 
@@ -141,20 +129,16 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Lif
     }
 
     private String getCurrentOrientation() {
+        int deviceRotation = ((WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
+        int orientation = (360 - ORIENTATIONS.get(deviceRotation)) % 360;
 
-        final Display display = ((WindowManager) getReactApplicationContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-
-        switch (display.getRotation()) {
-            case Surface.ROTATION_0:
-                return "PORTRAIT";
-            case Surface.ROTATION_90:
-                return "LANDSCAPE-LEFT";
-            case Surface.ROTATION_180:
-                return "PORTRAIT-UPSIDEDOWN";
-            case Surface.ROTATION_270:
-                return "LANDSCAPE-RIGHT";
+        if (orientation == 90) {
+            return "LANDSCAPE-LEFT";
+        } else if (orientation == 270) {
+            return "LANDSCAPE-RIGHT";
         }
-        return "UNKNOWN";
+
+        return "PORTRAIT";
     }
 
     @ReactMethod
