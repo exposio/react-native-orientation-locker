@@ -21,7 +21,9 @@ import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
 import android.util.DisplayMetrics;
+import android.util.SparseIntArray;
 import android.hardware.SensorManager;
+import android.util.Log;
 
 import com.facebook.common.logging.FLog;
 import com.facebook.react.bridge.Arguments;
@@ -48,6 +50,18 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Lif
     private String lastOrientationValue = "";
     private String lastDeviceOrientationValue = "";
 
+ /**
+     * Conversion from screen rotation to JPEG orientation.
+     */
+    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+
+    static {
+        ORIENTATIONS.append(Surface.ROTATION_0, 0);
+        ORIENTATIONS.append(Surface.ROTATION_90, 90);
+        ORIENTATIONS.append(Surface.ROTATION_180, 180);
+        ORIENTATIONS.append(Surface.ROTATION_270, 270);
+    }
+
 
     public OrientationModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -62,17 +76,15 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Lif
 
                 String deviceOrientationValue = lastDeviceOrientationValue;
 
+                int deviceRotation = ((WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
+                orientation = (360 - ORIENTATIONS.get(deviceRotation)) % 360;
 
-                if (orientation == -1) {
-                    deviceOrientationValue = "UNKNOWN";
-                } else if (orientation > 355 || orientation < 5) {
+               if (orientation == 360 || orientation == 0 || orientation == 180) {
                     deviceOrientationValue = "PORTRAIT";
-                } else if (orientation > 85 && orientation < 95) {
-                    deviceOrientationValue = "LANDSCAPE-RIGHT";
-                } else if (orientation > 175 && orientation < 185) {
-                    deviceOrientationValue = "PORTRAIT-UPSIDEDOWN";
-                } else if (orientation > 265 && orientation < 275) {
+                } else if (orientation == 90) {
                     deviceOrientationValue = "LANDSCAPE-LEFT";
+                } else if (orientation == 270) {
+                    deviceOrientationValue = "LANDSCAPE-RIGHT";
                 }
 
                 if (!lastDeviceOrientationValue.equals(deviceOrientationValue)) {
